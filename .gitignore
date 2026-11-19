@@ -1,0 +1,54 @@
+# Environments & Virtual Environments
+.venv/
+*/.venv/
+venv/
+*/venv/
+env/
+*/env/
+
+# Environment Variables & Secrets
+.env
+.env.*
+*.env
+!.env.example
+*.pem
+*.key
+*.cert
+credentials.json
+secrets.json
+
+# Python Caches & Test Artifacts
+__pycache__/
+*/__pycache__/
+*.py[cod]
+.pytest_cache/
+*/.pytest_cache/
+.coverage
+htmlcov/
+
+# Node & Build Outputs
+node_modules/
+*/node_modules/
+dist/
+*/dist/
+.npm/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+examshield.db
+*/examshield.db
+test.db
+*/test.db
+
+# Large Binaries
+cloudflared.exe
+*/cloudflared.exe
+*.exe
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

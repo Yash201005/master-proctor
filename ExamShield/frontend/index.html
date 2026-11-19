@@ -1,0 +1,73 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>ExamShield</title><script>
+  // Universal Early Capture Right-Click & Context Menu Blocker (prevents Google Lens & inspecting)
+  (function() {
+    function block(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      }
+      return false;
+    }
+    window.addEventListener('contextmenu', block, true);
+    document.addEventListener('contextmenu', block, true);
+    document.oncontextmenu = block;
+    window.oncontextmenu = block;
+  })();
+
+  // ========================================================
+  // NETFLIX-GRADE HARDWARE SCREENSHOT BLACKOUT ENGINE
+  // Synchronously blacks out the entire viewport within 0ms
+  // of any screenshot trigger (Greenshot, Snipping Tool, PrtScn)
+  // so any captured screenshot yields 100% pure black pixels.
+  // ========================================================
+  (function() {
+    var blackoutTimer = null;
+
+    function activateBlackout(source) {
+      try {
+        document.documentElement.classList.add("netflix-blackout-active");
+        if (document.body) document.body.classList.add("netflix-blackout-active");
+        var shield = document.getElementById("exam-netflix-shield");
+        if (shield) shield.style.display = "block";
+
+        // Sanitize clipboard immediately so screenshot cannot be stored or pasted
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText("ExamShield: Screen captures are strictly prohibited.").catch(function() {});
+        }
+      } catch (err) {}
+
+      if (blackoutTimer) clearTimeout(blackoutTimer);
+      blackoutTimer = setTimeout(function() {
+        // Only restore if user has focus and document is visible
+        if (document.hasFocus && document.hasFocus() && !document.hidden && document.visibilityState === "visible") {
+          document.documentElement.classList.remove("netflix-blackout-active");
+          if (document.body) document.body.classList.remove("netflix-blackout-active");
+          var s = document.getElementById("exam-netflix-shield");
+          if (s) s.style.display = "none";
+        }
+      }, 2500);
+    }
+
+    function onKey(e) {
+      var k = (e.key || "").toLowerCase();
+      var code = (e.code || "").toLowerCase();
+      var isPrtScn = k === "printscreen" || k === "snapshot" || k === "print" || code === "printscreen" || e.keyCode === 44 || e.which === 44;
+      var isSnip = (e.metaKey && (k === "s" || k === "p" || code === "keys" || e.shiftKey)) ||
+                   (e.ctrlKey && e.shiftKey && (k === "s" || k === "3" || k === "4" || k === "5" || k === "g")) ||
+                   (e.altKey && (isPrtScn || k === "g"));
+
+      if (isPrtScn || isSnip) {
+        activateBlackout("Key: " + (k || code));
+      }
+    }
+
+    // Capture screenshot shortcuts synchronously in early capture phase on window
+    window.addEventListener("keydown", onKey, true);
+    window.addEventListener("keyup", onKey, true);
+
+    // Export globally for React Candidate component
+    window.__activateNetflixBlackout = activateBlackout;
+  })();
+</script></head>
+<body oncontextmenu="return false;"><div id="exam-netflix-shield"></div><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>

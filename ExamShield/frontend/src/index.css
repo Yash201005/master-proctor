@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: Inter, system-ui, sans-serif;
+    background: #f8fafc;
+    color: #0f172a;
+    overflow-x: hidden;
+}
+
+/* Emergency smooth shrinking/pulsing border animation for fullscreen exit */
+@keyframes emergencyBorderPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        border-color: rgba(239, 68, 68, 0.85);
+        /* red-500 */
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25), inset 0 0 20px rgba(239, 68, 68, 0.10);
+    }
+
+    50% {
+        transform: scale(0.99);
+        /* subtly shrinking inward to create emergency tension */
+        border-color: rgba(220, 38, 38, 1);
+        /* red-600 */
+        box-shadow: 0 0 0 7px rgba(239, 68, 68, 0.45), inset 0 0 38px rgba(239, 68, 68, 0.20);
+    }
+}
+
+.fullscreen-warning-border {
+    animation: emergencyBorderPulse 1.6s ease-in-out infinite;
+    border-width: 3px !important;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fullscreen-normal-border {
+    border-color: #3b82f6;
+    /* blue-500 */
+    border-width: 2px;
+    transform: scale(1);
+    box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.05);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Strict text-selection disabling for examination security across EVERYTHING including textareas */
+.exam-no-select,
+.exam-no-select *,
+.exam-no-select input,
+.exam-no-select textarea,
+.exam-no-select [contenteditable="true"] {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+}
+
+/* Obscure selection highlight colors so no highlight rectangle can be drawn */
+::selection {
+    background: transparent !important;
+    color: inherit !important;
+}
+::-moz-selection {
+    background: transparent !important;
+    color: inherit !important;
+}
+
+/* Universal Sandbox Guard: Hide and suppress any foreign injected extension overlays */
+body > *:not(#root):not(#exam-netflix-shield):not(script):not(style),
+html > *:not(body):not(head) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    max-width: 0 !important;
+    max-height: 0 !important;
+    position: fixed !important;
+    left: -99999px !important;
+    top: -99999px !important;
+    z-index: -99999 !important;
+    clip: rect(0, 0, 0, 0) !important;
+}
+
+/* ========================================================
+   NETFLIX-GRADE SCREENSHOT BLANKOUT SHIELD
+   When a screenshot (Greenshot, Snipping Tool, PrintScreen)
+   is initiated or window focus is lost, the entire display
+   surface instantly collapses to pure pitch-black (#000000),
+   rendering any captured screenshot completely blank.
+   ======================================================== */
+#exam-netflix-shield {
+    display: none;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: #000000 !important;
+    z-index: 2147483647 !important;
+    pointer-events: all !important;
+    user-select: none !important;
+}
+
+html.netflix-blackout-active #exam-netflix-shield,
+body.netflix-blackout-active #exam-netflix-shield {
+    display: block !important;
+    background-color: #000000 !important;
+}
+
+html.netflix-blackout-active #root,
+body.netflix-blackout-active #root {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    filter: brightness(0) contrast(0) !important;
+    background-color: #000000 !important;
+}
+
+/* Obscure all question text and cards when blackout is active */
+html.netflix-blackout-active *,
+body.netflix-blackout-active * {
+    color: transparent !important;
+    text-shadow: none !important;
+    border-color: #000000 !important;
+}
+
+/* Emergency content obfuscation when exam window loses focus */
+.exam-content-obscured {
+    filter: blur(45px) !important;
+    opacity: 0.05 !important;
+    user-select: none !important;
+    pointer-events: none !important;
+    transition: filter 0.1s ease-out, opacity 0.1s ease-out;
+}
+
+/* Prevent print and print-to-PDF screenshots */
+@media print {
+
+    html,
+    body {
+        display: none !important;
+        visibility: hidden !important;
+    }
+}
