@@ -1,0 +1,50 @@
+# =============================================================================
+# Master Proctor Examination Suite - .gitignore
+# =============================================================================
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables & Secrets (CRITICAL: Never commit API keys)
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.secret
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Temporary, Cache, and Output Files
+output/
+*.log
+*.zip
+*.tar.gz
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Operating System & Editor Artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Standalone / Nested Sub-Repositories
+taste-skill/
+cand_ver/
