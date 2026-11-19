@@ -1,0 +1,15 @@
+# Tested target: Python 3.10.11 (64-bit)
+# NOTE: you ALSO need the Tesseract engine installed (see README.md)
+
+numpy==1.26.4
+Pillow>=10.0
+opencv-python==4.6.0.66
+opencv-contrib-python==4.6.0.66
+rapidfuzz>=3.0
+
+# OCR engine 1: Tesseract (python wrapper only; the .exe is installed separately)
+pytesseract==0.3.10
+
+# OCR engine 2: PaddleOCR (CPU)
+paddlepaddle>=2.6.1
+paddleocr>=2.7.0

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ExamShield &bull; Proctored Examination Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/script_convertor/exam_player.css">
+</head>
+<body>
+
+  <!-- ===================================================================== -->
+  <!-- 1. EXAMSHIELD TOP PROCTORING HEADER                                   -->
+  <!-- ===================================================================== -->
+  <header class="exam-header">
+    <div class="brand-wrapper">
+      <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <span class="brand-title">ExamShield</span>
+      <span class="brand-subtitle" id="examTitleHeader">CS301 Systems Engineering &amp; Architecture</span>
+    </div>
+
+    <div class="header-controls">
+      <div class="network-pill">
+        <span class="network-dot"></span>
+        <span id="networkPingText">Network: Stable (42 ms)</span>
+      </div>
+
+      <div class="timer-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span id="examTimerText">30:00</span>
+      </div>
+
+      <button type="button" class="btn-stop-exam" id="btnStopExam">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="5" y="5" width="14" height="14" rx="2"/>
+        </svg>
+        <span>Stop Examination</span>
+      </button>
+
+      <button type="button" class="btn-fullscreen" onclick="if(!document.fullscreenElement){document.documentElement.requestFullscreen();}else{document.exitFullscreen();}" title="Toggle Fullscreen">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- 2. SCRIPT CONVERTER TOP TOOLBAR                                       -->
+  <!-- ===================================================================== -->
+  <div class="converter-studio-bar">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span class="studio-pill">Gemini Script Converter Active</span>
+      <span style="font-size: 0.82rem; color: var(--text-muted);">
+        Supports 20&ndash;50 page PDF syllabi, lecture notepads, and handwritten notes.
+      </span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button type="button" class="btn-studio-action" id="btnOpenStudio">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+        </svg>
+        Upload New Script / Convert to MCQs
+      </button>
+      <a href="/" class="btn-studio-action" style="text-decoration: none; color: inherit;">
+        &larr; Back to ID &amp; Room Proctor
+      </a>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 3. MAIN EXAMSHIELD TEST VIEW (Split View)                             -->
+  <!-- ===================================================================== -->
+  <main class="exam-container" id="examMainView">
+    
+    <!-- Left Column: Active Question Viewport -->
+    <section class="question-viewport">
+      <div class="question-header">
+        <div class="question-meta-tag" id="questionNumTag">QUESTION 1 OF 10</div>
+        <h2 class="question-title" id="questionTitle">Loading question statement&hellip;</h2>
+      </div>
+
+      <div class="security-notice">
+        <span>Direct Selection &amp; Input Only: Copying, pasting, and window switching are monitored and logged.</span>
+        <span style="font-family: var(--font-mono); font-size: 0.75rem;">Proctor: ACTIVE</span>
+      </div>
+
+      <div class="question-body">
+        <div class="options-list" id="optionsList">
+          <!-- Dynamically populated options A, B, C, D -->
+        </div>
+
+        <!-- Optional Scratchpad (Faithful to photo) -->
+        <div class="scratch-box-wrapper">
+          <label class="scratch-box-label" for="scratchInput">Candidate Working Notes / Scratchpad (Optional)</label>
+          <textarea id="scratchInput" class="scratch-textarea" placeholder="Use this area to type scratch calculations or notes during the test..."></textarea>
+        </div>
+      </div>
+
+      <!-- Footer Action Toolbar -->
+      <footer class="question-footer">
+        <label class="mark-review-label">
+          <input type="checkbox" id="chkMarkReview">
+          <span>Mark for Review</span>
+        </label>
+
+        <div class="nav-buttons">
+          <button type="button" class="btn-nav btn-prev" id="btnPrev" disabled>&larr; Previous</button>
+          <button type="button" class="btn-nav btn-next" id="btnNext">
+            <span>Next</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </footer>
+    </section>
+
+    <!-- Right Column: Question Palette Sidebar -->
+    <aside class="palette-sidebar">
+      <div class="palette-header">
+        <h3 class="palette-title">Question Palette</h3>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+      </div>
+
+      <div class="palette-body">
+        <div class="palette-grid" id="paletteGrid">
+          <!-- Dynamically populated palette buttons (1, 2, 3...) -->
+        </div>
+      </div>
+
+      <!-- Palette Legend (Faithful to photo) -->
+      <div class="palette-legend">
+        <div class="legend-item">
+          <div class="legend-swatch swatch-answered"></div>
+          <span>Answered</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch swatch-not-visited"></div>
+          <span>Not Visited</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch swatch-current"></div>
+          <span>Current</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch swatch-marked"></div>
+          <span>Marked for Review</span>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- 4. RESULTS & SCORECARD VIEW                                           -->
+  <!-- ===================================================================== -->
+  <section class="results-card" id="resultsView" style="display: none;">
+    <div style="text-align: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 24px;">
+      <span class="studio-pill" style="font-size: 0.85rem;">Examination Complete</span>
+      <h1 style="font-size: 1.8rem; font-weight: 800; margin-top: 10px;">Performance Scorecard</h1>
+      <div class="score-badge-large" id="resPercentage">0%</div>
+      <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 12px;">
+        Total Score: <strong id="resScore" style="color: var(--text-main);">0 / 0</strong>
+      </p>
+      <span id="resStatusBadge" style="padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 0.85rem;">
+        EVALUATING
+      </span>
+    </div>
+
+    <div style="margin-top: 28px;">
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;">Detailed Question-by-Question Review</h3>
+      <div id="resultsReviewList">
+        <!-- Dynamically populated question breakdown -->
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 32px;">
+      <button type="button" class="btn-nav btn-next" id="btnRetakeExam" style="padding: 10px 24px;">
+        Retake Examination
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 5. SCRIPT CONVERTER STUDIO MODAL                                      -->
+  <!-- ===================================================================== -->
+  <div id="studioModal" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: #ffffff; width: 560px; max-width: 90%; border-radius: 12px; padding: 28px; box-shadow: var(--shadow-lg);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h3 style="font-size: 1.2rem; font-weight: 700;">Script to MCQ Converter</h3>
+        <button type="button" id="btnCloseStudio" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+      
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.45;">
+        Upload a <strong>20 to 50 page script</strong> (digital PDF, lecture notepad, or scanned notes). Gemini will chunk the topics evenly and generate structured multiple-choice questions.
+      </p>
+
+      <form id="studioUploadForm">
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px;">
+            Script Document (PDF or Text):
+          </label>
+          <input type="file" id="scriptFileInput" accept=".pdf,.txt,.md" style="width: 100%; padding: 8px; border: 1px dashed var(--border-strong); border-radius: 6px;">
+          <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">
+            Leave empty to generate a fresh paper from the built-in 25-page CS301 syllabus.
+          </span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px;">
+              Number of Questions:
+            </label>
+            <select id="inputQCount" style="width: 100%; height: 38px; border: 1px solid var(--border-strong); border-radius: 6px; padding: 0 10px;">
+              <option value="5">5 Questions (Quick Test)</option>
+              <option value="10" selected>10 Questions</option>
+              <option value="20">20 Questions (Standard Paper)</option>
+              <option value="30">30 Questions (Full Mock)</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px;">
+              Difficulty Level:
+            </label>
+            <select id="selectDifficulty" style="width: 100%; height: 38px; border: 1px solid var(--border-strong); border-radius: 6px; padding: 0 10px;">
+              <option value="Mixed" selected>Mixed (Balanced)</option>
+              <option value="Easy">Easy (Fundamental)</option>
+              <option value="Medium">Medium (Applied)</option>
+              <option value="Hard">Hard (Deep Analytical)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 22px;">
+          <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px;">
+            Gemini API Key (Configured):
+          </label>
+          <input type="password" id="inputCustomKey" placeholder="Pre-configured with active key" style="width: 100%; height: 38px; border: 1px solid var(--border-strong); border-radius: 6px; padding: 0 10px; font-family: var(--font-mono); font-size: 0.82rem;">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn-studio-action" onclick="document.getElementById('studioModal').style.display='none'">Cancel</button>
+          <button type="submit" class="btn-nav btn-next" id="btnGenerateStudio">
+            Synthesize MCQs with Gemini
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/script_convertor/exam_player.js"></script>
+</body>
+</html>

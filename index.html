@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Candidate Verification & Examination Room Scanner</title>
+  <meta name="description" content="Candidate examination room verification and automated 7-stage 360-degree room scanning system.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Full-width Application Header -->
+  <header class="app-header">
+    <div class="brand-wrapper">
+      <div class="brand-title">
+        Examination Proctoring
+        <span class="brand-badge">Room Verification</span>
+      </div>
+    </div>
+    <div class="candidate-session-meta">
+      <a href="/exam-player" class="btn btn-primary" style="font-size: 0.78rem; padding: 5px 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; border-radius: 4px; margin-right: 8px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        ExamShield Portal &rarr;
+      </a>
+      <div id="headerAuthBadge" class="badge badge-warning" style="font-size: 0.75rem; padding: 4px 10px;">
+        Authentication Required
+      </div>
+      <div class="candidate-pill" id="headerCandidatePill" style="display: none;">
+        <span>Candidate:</span>
+        <strong id="headerCandName">Jane Doe</strong>
+        <span>|</span>
+        <span>Exam:</span>
+        <strong id="headerExamCode">EXAM-2026-CS101</strong>
+        <button id="btnEditCandidate" class="btn btn-secondary" style="padding: 2px 8px; font-size: 0.75rem; border-radius: 4px; margin-left: 6px;">
+          Edit
+        </button>
+        <button id="btnHeaderLogout" class="btn btn-secondary" style="padding: 2px 8px; font-size: 0.75rem; border-radius: 4px; margin-left: 6px; color: var(--danger-text); background: var(--danger-bg); border-color: var(--danger-border);">
+          Sign Out
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Unified Workflow Master Stepper (Visible once authenticated) -->
+  <div class="overall-stepper-container" id="masterStepperContainer" style="display: none;">
+    <div class="overall-stepper">
+      <div id="masterStep1" class="master-step active" style="cursor: pointer;">
+        <div class="master-step-num">1</div>
+        <div class="master-step-meta">
+          <span class="master-step-tag">STAGE 1 OF 2</span>
+          <strong class="master-step-title">Identity Verification</strong>
+        </div>
+      </div>
+      <div class="master-step-divider"></div>
+      <div id="masterStep2" class="master-step locked" style="cursor: pointer;">
+        <div class="master-step-num">2</div>
+        <div class="master-step-meta">
+          <span class="master-step-tag">STAGE 2 OF 2</span>
+          <strong class="master-step-title">Room Verification</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application Container -->
+  <main class="page-container">
+
+    <!-- ================================================================= -->
+    <!-- AUTHENTICATION VIEW (Linear / Figma style via design-taste-frontend) -->
+    <!-- ================================================================= -->
+    <section id="auth-wrapper" class="auth-wrapper">
+      
+      <!-- 1. Candidate Sign In Card -->
+      <div id="login-card" class="auth-card">
+        <div class="auth-header">
+          <span class="auth-badge">Proctoring Portal</span>
+          <h1 class="auth-title">Candidate Sign In</h1>
+          <p class="auth-subtitle">Authenticate with your examination credentials to begin document inspection and 360&deg; room scanning.</p>
+        </div>
+
+        <div id="login-error" class="auth-alert-error" style="display: none;"></div>
+        <div id="login-lockout" class="auth-alert-lockout" style="display: none;">Please try again later.</div>
+
+        <form id="loginForm" autocomplete="on">
+          <div class="auth-form-group">
+            <label for="loginEmail" class="auth-label">Registered Candidate Email</label>
+            <input type="email" id="loginEmail" class="auth-input" placeholder="candidate@university.edu" required autocomplete="username">
+          </div>
+
+          <div class="auth-form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label for="loginPassword" class="auth-label" style="margin-bottom: 0;">Password</label>
+              <button type="button" id="btnShowResetFromTop" class="auth-link" style="font-size: 0.78rem;">Forgot?</button>
+            </div>
+            <div class="auth-input-wrapper">
+              <input type="password" id="loginPassword" class="auth-input" placeholder="Enter access password" required autocomplete="current-password">
+              <button type="button" id="btnToggleLoginPwd" class="auth-toggle-pwd" aria-label="Toggle password visibility">Show</button>
+            </div>
+          </div>
+
+          <button type="submit" id="btnLoginSubmit" class="auth-btn-primary">
+            <span>Sign In to Examination</span>
+          </button>
+        </form>
+
+        <div class="auth-credentials-hint">
+          <strong>Authorized Examination Account:</strong><br>
+          Email: <code>jane.doe@university.edu</code><br>
+          Password: <code>Candidate2026!</code>
+        </div>
+
+        <div class="auth-footer">
+          <span>Need to update your credentials? </span>
+          <button type="button" id="btnShowReset" class="auth-link">Reset password</button>
+        </div>
+      </div>
+
+      <!-- 2. Candidate Password Reset Card -->
+      <div id="reset-card" class="auth-card" style="display: none;">
+        <div class="auth-header">
+          <span class="auth-badge" style="background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-border);">Credential Recovery</span>
+          <h1 class="auth-title">Reset Password</h1>
+          <p class="auth-subtitle">Set a secure new password (min. 8 characters) for your examination registration.</p>
+        </div>
+
+        <div id="reset-error" class="auth-alert-error" style="display: none;"></div>
+        <div id="reset-success" class="auth-alert-success" style="display: none;"></div>
+        <div id="reset-lockout" class="auth-alert-lockout" style="display: none;">Please try again later.</div>
+
+        <form id="resetForm">
+          <div class="auth-form-group">
+            <label for="resetEmail" class="auth-label">Registered Candidate Email</label>
+            <input type="email" id="resetEmail" class="auth-input" placeholder="candidate@university.edu" required>
+          </div>
+
+          <div class="auth-form-group">
+            <label for="resetPassword" class="auth-label">New Password (min. 8 characters)</label>
+            <div class="auth-input-wrapper">
+              <input type="password" id="resetPassword" class="auth-input" placeholder="Enter new password" required minlength="8" autocomplete="new-password">
+              <button type="button" id="btnToggleResetPwd" class="auth-toggle-pwd" aria-label="Toggle password visibility">Show</button>
+            </div>
+          </div>
+
+          <div class="auth-form-group">
+            <label for="resetConfirmPassword" class="auth-label">Confirm New Password</label>
+            <input type="password" id="resetConfirmPassword" class="auth-input" placeholder="Confirm new password" required minlength="8" autocomplete="new-password">
+          </div>
+
+          <button type="submit" id="btnResetSubmit" class="auth-btn-primary">
+            <span>Update Password</span>
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          <span>Remember your credentials? </span>
+          <button type="button" id="btnShowLogin" class="auth-link">Back to Sign In</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- STAGE 1: CANDIDATE IDENTITY VERIFICATION                          -->
+    <!-- ================================================================= -->
+    <section id="stage1-wrapper" style="display: none;">
+      <header class="top">
+        <div>
+          <h1>Identity Verification Snapshot</h1>
+          <p class="muted">Dual-engine OCR enabled (PaddleOCR + Tesseract). Images are processed in-memory and discarded.</p>
+        </div>
+        <button type="button" class="btn" id="btnResetStage1">Cancel and clear</button>
+      </header>
+
+      <app-progress-stepper>
+        <ol class="steps" aria-label="Progress">
+          <li id="stepper-step-0" class="active" aria-current="step">
+            <span class="bar"></span>
+            <span class="label">2A &middot; Document</span>
+          </li>
+          <li id="stepper-step-1">
+            <span class="bar"></span>
+            <span class="label">2B &middot; Headshot</span>
+          </li>
+          <li id="stepper-step-2">
+            <span class="bar"></span>
+            <span class="label">Match</span>
+          </li>
+        </ol>
+      </app-progress-stepper>
+
+      <main class="stage1-main">
+        <!-- Stage 1 View: Document Capture -->
+        <div id="stage1-view-document" class="stage1-subview">
+          <div class="head">
+            <h2>Add your ID document</h2>
+            <p class="muted">Capture or upload both sides. Processed securely by your local OCR engine.</p>
+          </div>
+
+          <div class="grid">
+            <!-- Front Card -->
+            <section class="card doc-card" data-side="front">
+              <header>
+                <h3>Front of ID</h3>
+                <span id="status-front" class="muted status">Not captured</span>
+              </header>
+
+              <div id="panel-front" class="panel" data-mode="idle" data-guide="document">
+                <video id="video-front" class="media hidden" playsinline muted></video>
+                <img id="img-front" class="media hidden" alt="Front ID capture preview" />
+                <div id="placeholder-front" class="placeholder">
+                  <span>Use the camera, upload a file, or try demo data</span>
+                </div>
+                <div class="guide" aria-hidden="true">
+                  <span class="corner tl"></span><span class="corner tr"></span>
+                  <span class="corner bl"></span><span class="corner br"></span>
+                </div>
+                <div id="scanline-front" class="scan-line" aria-hidden="true"></div>
+                <canvas id="tracker-front" class="tracker-canvas hidden" aria-hidden="true"></canvas>
+                <div id="guidance-front" class="scanner-guidance hidden" role="status" aria-live="polite">Position the entire card inside the frame</div>
+                <div id="flash-front" class="capture-flash hidden" aria-hidden="true"></div>
+                <div id="pills-front" class="pills"></div>
+              </div>
+
+              <p id="cam-err-front" class="alert error hidden" role="alert"></p>
+              <p id="err-front" class="alert error hidden" role="alert"></p>
+              <p id="warn-demo-front" class="alert warn hidden">DEMO MODE: these values are simulated. No document was read.</p>
+
+              <input type="file" id="file-front" class="visually-hidden" tabindex="-1"
+                     accept="image/jpeg,image/png,image/webp,image/bmp,image/tiff" />
+
+              <div id="btnrow-front" class="btn-row">
+                <button type="button" id="btn-cam-front" class="btn primary">Use camera</button>
+                <button type="button" id="btn-upload-front" class="btn">Upload file</button>
+                <button type="button" id="btn-demo-front" class="btn ghost">Use demo data</button>
+              </div>
+            </section>
+
+            <!-- Back Card -->
+            <section class="card doc-card" data-side="back">
+              <header>
+                <h3>Back of ID</h3>
+                <span id="status-back" class="muted status">Not captured</span>
+              </header>
+
+              <div id="panel-back" class="panel" data-mode="idle" data-guide="document">
+                <video id="video-back" class="media hidden" playsinline muted></video>
+                <img id="img-back" class="media hidden" alt="Back ID capture preview" />
+                <div id="placeholder-back" class="placeholder">
+                  <span>Use the camera, upload a file, or try demo data</span>
+                </div>
+                <div class="guide" aria-hidden="true">
+                  <span class="corner tl"></span><span class="corner tr"></span>
+                  <span class="corner bl"></span><span class="corner br"></span>
+                </div>
+                <div id="scanline-back" class="scan-line" aria-hidden="true"></div>
+                <canvas id="tracker-back" class="tracker-canvas hidden" aria-hidden="true"></canvas>
+                <div id="guidance-back" class="scanner-guidance hidden" role="status" aria-live="polite">Position the entire card inside the frame</div>
+                <div id="flash-back" class="capture-flash hidden" aria-hidden="true"></div>
+                <div id="pills-back" class="pills"></div>
+              </div>
+
+              <p id="cam-err-back" class="alert error hidden" role="alert"></p>
+              <p id="err-back" class="alert error hidden" role="alert"></p>
+              <p id="warn-demo-back" class="alert warn hidden">DEMO MODE: these values are simulated. No document was read.</p>
+
+              <input type="file" id="file-back" class="visually-hidden" tabindex="-1"
+                     accept="image/jpeg,image/png,image/webp,image/bmp,image/tiff" />
+
+              <div id="btnrow-back" class="btn-row">
+                <button type="button" id="btn-cam-back" class="btn primary">Use camera</button>
+                <button type="button" id="btn-upload-back" class="btn">Upload file</button>
+                <button type="button" id="btn-demo-back" class="btn ghost">Use demo data</button>
+              </div>
+            </section>
+          </div>
+
+          <p id="docs-hint" class="alert info">Front and back of the ID are both required.</p>
+
+          <div class="btn-row actions">
+            <button type="button" id="btn-to-review" class="btn primary" disabled>
+              Review details
+            </button>
+          </div>
+        </div>
+
+        <!-- Stage 1 View: Document Review -->
+        <div id="stage1-view-review" class="stage1-subview hidden">
+          <div class="head">
+            <h2>Confirm the details</h2>
+            <p class="muted">Check each extracted value against your ID document. Discrepancies or heuristic fields are tagged for verification.</p>
+          </div>
+
+          <p id="review-demo-banner" class="alert warn hidden">DEMO MODE: simulated test values loaded.</p>
+
+          <div class="review-layout">
+            <section class="card shots">
+              <h3>Your capture</h3>
+              <figure>
+                <img id="review-img-front" class="hidden" alt="Front of ID" />
+                <div id="review-noimg-front" class="noimg">No front image</div>
+                <figcaption id="review-caption-front">Front</figcaption>
+              </figure>
+              <figure>
+                <img id="review-img-back" class="hidden" alt="Back of ID" />
+                <div id="review-noimg-back" class="noimg">No back image</div>
+                <figcaption id="review-caption-back">Back</figcaption>
+              </figure>
+            </section>
+
+            <section class="card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3>Extracted details</h3>
+                <span id="review-doc-badge" class="badge badge-clear">Document Verified</span>
+              </div>
+              <table>
+                <thead><tr><th>Field</th><th>Value</th><th>Source & Consensus</th></tr></thead>
+                <tbody id="review-tbody">
+                  <!-- Populated dynamically from OCR fields -->
+                </tbody>
+              </table>
+              <p id="review-nofields-err" class="alert error hidden" role="alert">No fields could be read. Go back and recapture, or use demo data.</p>
+              <p class="alert info small" style="margin-top: 14px;">
+                Dual-engine OCR combines PaddleOCR and Tesseract with automated consensus resolution.
+              </p>
+            </section>
+          </div>
+
+          <label class="confirm" style="display: flex; align-items: center; gap: 10px; margin-top: 18px; cursor: pointer;">
+            <input type="checkbox" id="check-details-confirmed" />
+            <span>I confirm the extracted details match my identity document.</span>
+          </label>
+
+          <div class="btn-row actions">
+            <button type="button" id="btn-back-to-docs" class="btn">Back to capture</button>
+            <button type="button" id="btn-to-headshot" class="btn primary" disabled>Continue</button>
+          </div>
+        </div>
+
+        <!-- Stage 1 View: Headshot Capture -->
+        <div id="stage1-view-headshot" class="stage1-subview hidden">
+          <div class="head">
+            <h2>Add a headshot</h2>
+            <p class="muted">Position your face inside the guide. The photo stays in this browser tab and is never saved.</p>
+          </div>
+
+          <div class="headshot-layout">
+            <section class="card stage">
+              <div id="panel-headshot" class="panel" data-mode="idle" data-guide="face">
+                <video id="video-headshot" class="media hidden" playsinline muted></video>
+                <img id="img-headshot" class="media hidden" alt="Selected capture preview" />
+                <div id="placeholder-headshot" class="placeholder">
+                  <span>Choose webcam, upload, or demo capture</span>
+                </div>
+                <div class="guide" aria-hidden="true">
+                  <span class="oval"></span>
+                </div>
+                <div id="scanline-headshot" class="scan-line" aria-hidden="true"></div>
+                <div id="pills-headshot" class="pills"></div>
+              </div>
+
+              <p id="cam-err-headshot" class="alert error hidden" role="alert"></p>
+              <p id="err-headshot" class="alert error hidden" role="alert"></p>
+              <p id="warn-demo-headshot" class="alert warn hidden">DEMO MODE: this is a simulated capture.</p>
+              <p id="info-done-headshot" class="alert info hidden">Photo ready. Format and framing validated.</p>
+
+              <div id="btnrow-headshot" class="btn-row">
+                <!-- Dynamically populated buttons -->
+              </div>
+            </section>
+
+            <section class="options" aria-label="Headshot options">
+              <button type="button" id="opt-headshot-webcam" class="opt">
+                <strong>Use webcam</strong><span>Live preview with a face guide</span>
+              </button>
+              <button type="button" id="opt-headshot-upload" class="opt">
+                <strong>Upload photo</strong><span>JPEG, PNG or WebP, up to 10 MB</span>
+              </button>
+              <button type="button" id="opt-headshot-demo" class="opt">
+                <strong>Demo capture</strong><span>Simulated headshot snapshot</span>
+              </button>
+              <input type="file" id="file-headshot" class="visually-hidden" tabindex="-1"
+                     accept="image/jpeg,image/png,image/webp" />
+            </section>
+          </div>
+
+          <div class="btn-row actions">
+            <button type="button" id="btn-back-to-review" class="btn">Back to details</button>
+            <button type="button" id="btn-to-match" class="btn primary" disabled>Continue to Match &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Stage 1 View: Match Demo -->
+        <div id="stage1-view-match" class="stage1-subview hidden">
+          <div class="head">
+            <h2>Match Verification <span id="match-head-pill" class="pill" data-kind="live"><i class="dot"></i>VERIFIED MATCH</span></h2>
+            <p id="match-head-subtitle" class="muted">Compare document portrait with candidate headshot.</p>
+          </div>
+
+          <div class="match-layout">
+            <section class="card">
+              <h3>Document details</h3>
+              <dl id="match-doc-dl" style="display: grid; grid-template-columns: 120px 1fr; gap: 10px; margin-top: 12px;"></dl>
+              <p id="match-doc-banner" class="alert small info" style="margin-top: 16px;">Extracted by dual-engine OCR pipeline.</p>
+            </section>
+
+            <section class="card">
+              <h3>Headshot</h3>
+              <img id="match-headshot-img" class="media-match hidden" alt="Your headshot" style="width: 100%; max-height: 240px; object-fit: contain; border-radius: 8px; margin-top: 10px;" />
+              <div id="match-headshot-placeholder" class="match-placeholder" style="min-height: 180px; display: grid; place-items: center; background: #f1f5f9; border-radius: 8px; margin-top: 10px;">
+                <span class="silhouette"></span>
+                <span class="muted">Headshot photo loaded</span>
+              </div>
+              <p id="match-headshot-source" class="muted small" style="margin-top: 8px;">Source: Webcam live capture</p>
+            </section>
+          </div>
+
+          <section class="card result" style="margin-top: 18px;">
+            <div id="match-result-status" class="result-status" style="display: flex; align-items: center; gap: 12px;">
+              <span id="match-result-pill" class="pill" data-kind="live"><i class="dot"></i>98% BIOMETRIC MATCH</span>
+              <strong id="match-result-title">Identity Confirmed</strong>
+            </div>
+            <p id="match-explanation-text" style="margin-top: 8px; color: var(--text-muted);">
+              Facial landmarks and extracted bearer identification successfully cross-referenced with examination roster.
+            </p>
+          </section>
+
+          <div class="btn-row actions">
+            <button type="button" id="btn-back-to-headshot" class="btn">Back</button>
+            <button type="button" id="btn-to-summary" class="btn primary">Finish Stage 1</button>
+          </div>
+        </div>
+
+        <!-- Stage 1 View: Session Summary -->
+        <div id="stage1-view-summary" class="stage1-subview hidden">
+          <section class="card summary-card">
+            <h2>Stage 1 Identity Verification Complete</h2>
+            <p class="muted">All identity verification checks have been passed successfully.</p>
+
+            <ul class="summary-list" style="margin: 20px 0; display: flex; flex-direction: column; gap: 12px;">
+              <li>
+                <strong>Document details:</strong>
+                <span id="summary-doc-text">Processed by Dual-Engine OCR (PaddleOCR + Tesseract).</span>
+              </li>
+              <li>
+                <strong>Headshot:</strong>
+                <span id="summary-headshot-text">Captured and validated.</span>
+              </li>
+              <li>
+                <strong>Match:</strong>
+                <span id="summary-match-text">Verified match against proctoring roster.</span>
+              </li>
+              <li>
+                <strong>Data Privacy:</strong>
+                <span>Zero disk persistence. Sensitive identifiers masked in accordance with compliance standards.</span>
+              </li>
+            </ul>
+
+            <div class="btn-row summary-actions">
+              <button type="button" id="btn-summary-restart" class="btn">Start over and clear</button>
+              <button type="button" id="btn-proceed-stage2" class="btn primary" style="font-weight: 600;">
+                Proceed to Stage 2: Room Verification &rarr;
+              </button>
+            </div>
+          </section>
+        </div>
+      </main>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- STAGE 2: CANDIDATE ROOM VERIFICATION                              -->
+    <!-- ================================================================= -->
+    <div id="stage2-wrapper" style="display: none;">
+      <!-- View 1: Primary Room Scanner (Candidate Landing View) -->
+      <section id="view-scanner-intro" class="page-workspace">
+        <h1 class="page-title">Scan your room</h1>
+        <p class="page-subtitle">
+          A guided seven-stage 360&deg; room scan is required before your examination.
+          Each stage lasts 10 seconds. Position your camera to follow the on-screen instructions closely.
+        </p>
+
+        <!-- Seven Stage Indicators -->
+        <div id="scannerStepper" class="stage-stepper"></div>
+
+        <!-- Camera Preview Console -->
+        <div id="cameraPanelWrapper" class="camera-panel-wrapper camera-flag-clear">
+          <video id="cameraVideo" class="camera-video" playsinline autoplay muted></video>
+
+          <!-- Top Camera Overlay -->
+          <div class="camera-overlay-top">
+            <div id="recBadge" class="rec-badge" style="display: none;">
+              <div class="rec-dot"></div>
+              <span>REC</span>
+            </div>
+            <div id="cameraStatusPill" class="camera-status-pill">Camera Ready</div>
+          </div>
+
+          <!-- Bottom HUD Overlay (Active during scanning) -->
+          <div id="cameraHudOverlay" class="camera-overlay-bottom" style="display: none;">
+            <div class="hud-stage-header">
+              <span id="hudStageTitle" class="hud-stage-title">Stage 1: Desk & workspace</span>
+              <span id="hudStageTimer" class="hud-stage-timer">10s</span>
+            </div>
+            <p id="hudInstruction" class="hud-instruction">Slowly show the desk, keyboard, and entire visible work surface.</p>
+            <div class="progress-container">
+              <div id="progressBarFill" class="progress-bar-fill"></div>
+            </div>
+            <span id="hudNextPreview" class="hud-next-preview">Next: Left side</span>
+          </div>
+        </div>
+
+        <!-- Concise List of 7 Areas to be Scanned -->
+        <div id="scanAreasSection" class="scan-areas-section">
+          <h3 class="scan-areas-title">Required Scanning Sequence (70 seconds total)</h3>
+          <div class="scan-areas-grid">
+            <div class="scan-area-row" id="area-card-1">
+              <div class="scan-area-num">1</div>
+              <div class="scan-area-text">
+                <strong>Desk & workspace (10s)</strong>
+                <span>Slowly show the desk, keyboard, and entire visible work surface.</span>
+              </div>
+            </div>
+            <div class="scan-area-row" id="area-card-2">
+              <div class="scan-area-num">2</div>
+              <div class="scan-area-text">
+                <strong>Left side (10s)</strong>
+                <span>Turn the camera to show the left side of the room.</span>
+              </div>
+            </div>
+            <div class="scan-area-row" id="area-card-3">
+              <div class="scan-area-num">3</div>
+              <div class="scan-area-text">
+                <strong>Right side (10s)</strong>
+                <span>Turn the camera to show the right side of the room.</span>
+              </div>
+            </div>
+            <div class="scan-area-row" id="area-card-4">
+              <div class="scan-area-num">4</div>
+              <div class="scan-area-text">
+                <strong>Behind you (10s)</strong>
+                <span>Show the space behind the candidate and the visible background.</span>
+              </div>
+            </div>
+            <div class="scan-area-row" id="area-card-5">
+              <div class="scan-area-num">5</div>
+              <div class="scan-area-text">
+                <strong>Floor & ceiling (10s)</strong>
+                <span>Tilt the camera to show the floor and ceiling.</span>
+              </div>
+            </div>
+            <div class="scan-area-row" id="area-card-6">
+              <div class="scan-area-num">6</div>
+              <div class="scan-area-text">
+                <strong>Ears & hands (10s)</strong>
+                <span>Clearly show both ears and hands as far as practical.</span>
+              </div>
+            </div>
+            <div class="scan-area-row" id="area-card-7" style="grid-column: span 2;">
+              <div class="scan-area-num">7</div>
+              <div class="scan-area-text">
+                <strong>Spectacles / glasses (10s)</strong>
+                <span>Show the candidate's face and spectacles, if worn.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Start Room Scan Button -->
+        <div id="startScanActionArea" style="display: flex; gap: 12px; margin-top: 24px;">
+          <button id="btnStartScan" class="btn btn-primary btn-block" style="padding: 15px; font-size: 1.1rem; flex: 2;">
+            Start 70-second room scan
+          </button>
+          <button id="btnCancelScan" class="btn btn-secondary" style="padding: 15px; font-size: 1.1rem; display: none;">
+            Cancel Scan
+          </button>
+        </div>
+      </section>
+
+      <!-- View 2: Findings & Results Review -->
+      <section id="view-results" class="page-workspace" style="display: none;">
+        <h1 class="page-title">Room Scan Findings</h1>
+        <p class="page-subtitle">Review the automated computer-vision observations and captured evidence from your 7-stage room scan.</p>
+
+        <!-- Summary Metrics Bar -->
+        <div id="resultsSummaryBar"></div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+          <button class="filter-tab-btn active" data-filter="all">All Findings</button>
+          <button class="filter-tab-btn" data-filter="flagged">Flagged Only</button>
+          <button class="filter-tab-btn" data-filter="clear">Clear Checks</button>
+        </div>
+
+        <!-- Findings List -->
+        <div id="findingsContainer" class="findings-container"></div>
+
+        <!-- Candidate Acknowledgement Box -->
+        <div class="acknowledgement-box">
+          <label class="checkbox-row" style="display: flex; gap: 12px; align-items: flex-start; cursor: pointer;">
+            <input type="checkbox" id="chkAcknowledge" style="margin-top: 4px;">
+            <span class="checkbox-label-text">
+              I acknowledge that I have completed the examination room scan, and confirm that my room satisfies proctoring requirements and is free of unauthorized materials.
+            </span>
+          </label>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-row" style="display: flex; gap: 12px; margin-top: 20px;">
+          <button id="btnRescan" class="btn btn-secondary">
+            Re-scan room
+          </button>
+          <button id="btnAcknowledgeSubmit" class="btn btn-primary" style="flex: 1;" disabled>
+            Acknowledge & Submit for Review
+          </button>
+        </div>
+      </section>
+
+      <!-- View 3: Waiting for Manual Proctor Review -->
+      <section id="view-waiting" class="page-workspace" style="display: none;">
+        <h1 class="page-title">Verification Submission Received</h1>
+        <p class="page-subtitle">Your room scan has been safely recorded and forwarded for human proctor verification.</p>
+
+        <div style="background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 28px; margin-bottom: 24px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-muted); display: block; font-weight: 600;">CANDIDATE</span>
+              <strong id="waitCandName" style="font-size: 1.1rem;">Jane Doe</strong>
+            </div>
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-muted); display: block; font-weight: 600;">EXAM CODE</span>
+              <strong id="waitExamCode" style="font-size: 1.1rem;">EXAM-2026-CS101</strong>
+            </div>
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-muted); display: block; font-weight: 600;">CANDIDATE ID</span>
+              <code id="waitCandId" style="font-size: 0.95rem;">cand_00aa7343d8</code>
+            </div>
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-muted); display: block; font-weight: 600;">DECISION AUTHORITY</span>
+              <span style="font-size: 0.95rem;">Automated + Proctor Review</span>
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid var(--border-subtle); padding-top: 24px; text-align: center;">
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; font-weight: 600;">CURRENT VERIFICATION STATUS</div>
+            <div id="waitStatusBadge" class="badge badge-warning" style="font-size: 1rem; padding: 8px 20px;">
+              PENDING PROCTOR REVIEW
+            </div>
+            <p id="waitStatusDesc" style="margin-top: 14px; font-size: 0.95rem; color: var(--text-main); max-width: 620px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+              The examination proctor is inspecting your room scan findings, evidence photos, and room environment before recording an approval decision.
+            </p>
+            <div style="margin-top: 24px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+              <a href="/exam-player" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                Enter ExamShield Test Portal &rarr;
+              </a>
+              <button id="btnWaitRestart" class="btn btn-secondary">Start new verification session</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> <!-- End stage2-wrapper -->
+
+  </main>
+
+  <!-- Edit Candidate Details Modal -->
+  <div id="editCandidateModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 style="font-size: 1.25rem;">Candidate Information</h3>
+        <button id="btnCloseEditModal" class="modal-close-btn">&times;</button>
+      </div>
+      <form id="editCandidateForm">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="inputCandName" class="form-label">Full Name</label>
+          <input type="text" id="inputCandName" class="form-input" required value="Jane Doe">
+        </div>
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="inputCandEmail" class="form-label">Email Address</label>
+          <input type="email" id="inputCandEmail" class="auth-input" required value="jane.doe@university.edu" readonly style="background: #f1f5f9; cursor: not-allowed;">
+        </div>
+        <div class="form-group" style="margin-bottom: 18px;">
+          <label for="inputExamCode" class="form-label">Examination Code</label>
+          <input type="text" id="inputExamCode" class="form-input" required value="EXAM-2026-CS101">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Save Details</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
