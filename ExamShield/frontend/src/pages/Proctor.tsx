@@ -2840,7 +2840,7 @@ export default function Proctor({ auth, onLogout }: { auth: Auth; onLogout?: () 
                   </div>
 
                   {/* Telemetry Breakdown Counters */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
                       <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Unfocused Time</div>
                       <div className="text-lg font-bold text-slate-800 mt-0.5">
@@ -2878,6 +2878,16 @@ export default function Proctor({ auth, onLogout }: { auth: Auth; onLogout?: () 
                       </div>
                       <div className="text-[10px] text-slate-500 mt-0.5">
                         Copilot/OCR probe
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Voice Isolation</div>
+                      <div className={`text-lg font-bold mt-0.5 ${(aiAuditData.telemetry_stats.voice_detections_count || 0) > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                        {(aiAuditData.telemetry_stats.voice_detections_count || 0) > 0 ? `${aiAuditData.telemetry_stats.voice_detections_count} Spoken` : "Quiet"}
+                      </div>
+                      <div className="text-[10px] text-slate-500 mt-0.5">
+                        Acoustic formant
                       </div>
                     </div>
                   </div>

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { matchShortcut } from "../detection/keyboard";
 import { keyboardDetector } from "../detection/keyboard";
-import { clipboardDetector, contextMenuDetector, fullscreenDetector, focusDetector } from "../detection/browser";
+import { clipboardDetector, contextMenuDetector, fullscreenDetector, focusDetector, voiceIsolationDetector } from "../detection/browser";
 import { classify, startHeartbeat } from "../detection/network";
 import { scanBrowserExtensions } from "../detection/extensions";
 
@@ -137,5 +137,14 @@ describe("network", () => {
     const stop = startHeartbeat(async () => { if (!ok) throw new Error("x"); }, (s) => states.push(s), { intervalMs: 100, slowMs: 800, failuresToDisconnect: 2 });
     await vi.advanceTimersByTimeAsync(50); ok = false; await vi.advanceTimersByTimeAsync(350); ok = true; await vi.advanceTimersByTimeAsync(150);
     expect(states).toContain("DOWN"); expect(states.at(-1)).toBe("STABLE"); stop();
+  });
+});
+
+describe("voice isolation", () => {
+  it("initializes and safely cleans up without throwing in test environment", () => {
+    const emit = vi.fn();
+    const cleanup = voiceIsolationDetector(emit);
+    expect(typeof cleanup).toBe("function");
+    cleanup();
   });
 });
