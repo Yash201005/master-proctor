@@ -1,7 +1,6 @@
 import type { Detector } from "./types";
 import { keyboardDetector } from "./keyboard";
 import { extensionDetector } from "./extensions";
-import { voiceIsolationDetector } from "./audio";
 export const clipboardDetector: Detector = (emit, doc = document) => {
   const mk = (type: string, word: string) => () => emit({
     event_type: type, event_category: "CLIPBOARD", severity: "MEDIUM",
@@ -382,5 +381,4 @@ export const sidebarDetector: Detector = (emit, doc = document) => {
   };
 };
 
-export const ALL_DETECTORS = [keyboardDetector, clipboardDetector, contextMenuDetector, dragDetector, fullscreenDetector, focusDetector, devtoolsHeuristic, navigationDetector, extensionDetector, sidebarDetector, voiceIsolationDetector];
-export { voiceIsolationDetector };
+export const ALL_DETECTORS = [keyboardDetector, clipboardDetector, contextMenuDetector, dragDetector, fullscreenDetector, focusDetector, devtoolsHeuristic, navigationDetector, extensionDetector, sidebarDetector];

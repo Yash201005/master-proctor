@@ -629,7 +629,6 @@ def analyze_telemetry_stream(session: Session_, events: list[Event]) -> dict:
     fullscreen_exits = [e for e in events if e.event_type in ("FULLSCREEN_EXIT", "WINDOW_RESIZED")]
     
     ext_events = [e for e in events if e.event_type == "BROWSER_EXTENSIONS_DETECTED"]
-    voice_events = [e for e in events if "VOICE" in e.event_type or e.event_category == "AUDIO"]
     high_risk_exts = []
     if ext_events:
         last_ext_meta = ext_events[-1].meta or {}
@@ -646,7 +645,6 @@ def analyze_telemetry_stream(session: Session_, events: list[Event]) -> dict:
         "right_click_attempts": len(right_clicks),
         "fullscreen_exits": len(fullscreen_exits),
         "high_risk_extensions_count": len(high_risk_exts),
-        "voice_detections_count": len(voice_events),
     }
 
     anomalies = []
@@ -738,16 +736,6 @@ def analyze_telemetry_stream(session: Session_, events: list[Event]) -> dict:
             "timestamp": right_clicks[0].timestamp.isoformat()
         })
 
-    if voice_events:
-        score += min(35, 20 + (len(voice_events) - 1) * 10)
-        anomalies.append({
-            "pattern": "Acoustic Speech / Verbal Communication Detected",
-            "severity": "HIGH" if len(voice_events) >= 2 else "MEDIUM",
-            "confidence": "CONFIRMED",
-            "evidence": f"Voice isolation detector flagged {len(voice_events)} human vocal speech event(s) during the proctored session.",
-            "timestamp": voice_events[0].timestamp.isoformat()
-        })
-
     risk_score = min(100, max(0, score))
 
     if risk_score >= 60:
@@ -759,7 +747,6 @@ def analyze_telemetry_stream(session: Session_, events: list[Event]) -> dict:
             f"{'AI copilot detection, ' if high_risk_exts else ''}"
             f"{'screen extraction attempts, ' if screenshots else ''}"
             f"{'anti-paste violations, ' if pastes else ''}"
-            f"{'verbal communication detected, ' if voice_events else ''}"
             f"{'significant unfocused window duration (' + str(total_unfocused_sec) + 's).' if total_unfocused_sec > 30 else 'prohibited shortcuts.'}"
         )
         recommendation = "Recommend immediate manual review of the event timeline. Candidate telemetry strongly correlates with external assistance or unauthorized software."

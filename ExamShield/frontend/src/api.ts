@@ -81,7 +81,6 @@ export interface AIAuditResult {
     right_click_attempts: number;
     fullscreen_exits: number;
     high_risk_extensions_count: number;
-    voice_detections_count?: number;
   };
   recommendation: string;
   audited_at: string | null;
